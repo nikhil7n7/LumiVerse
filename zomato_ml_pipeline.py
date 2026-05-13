@@ -39,7 +39,7 @@ def main():
     
     # --- 1 & 2. Dataset Loading ---
     print("\n[1/7] Loading Dataset...")
-    file_path = 'zomato_dataset.csv'
+    file_path = 'refined_zomato_dataset.csv'
     if not os.path.exists(file_path):
         print(f"Error: Could not find {file_path}")
         return
@@ -61,43 +61,32 @@ def main():
         df['Time_taken (min)'] = df['Time_taken (min)'].astype(str).str.replace('(min)', '', regex=False).str.strip()
         df['Time_taken (min)'] = pd.to_numeric(df['Time_taken (min)'], errors='coerce')
     
-    # Drop rows with NaN in critical columns like Target, Latitude, Longitude
-    df.dropna(subset=['Time_taken (min)', 'Restaurant_latitude', 'Delivery_location_latitude'], inplace=True)
+    # Drop rows with NaN in the target column
+    df.dropna(subset=['Time_taken (min)'], inplace=True)
     
-    # Clean 'NaN' strings and convert numerical columns safely
-    for col in ['Delivery_person_Age', 'Delivery_person_Ratings', 'multiple_deliveries']:
-        if col in df.columns:
-            df[col] = df[col].astype(str).str.replace('NaN', 'nan').astype(float)
-            df[col].fillna(df[col].median(), inplace=True)
-            
     # Fill categorical nulls
     cat_cols = ['Weather_conditions', 'Road_traffic_density', 'Type_of_order', 'Type_of_vehicle', 'Festival', 'City']
     for col in cat_cols:
         if col in df.columns:
-            df[col] = df[col].astype(str).str.strip().replace('NaN', df[col].mode()[0])
+            df[col] = df[col].astype(str).str.strip()
+            df[col].replace('NaN', df[col].mode()[0], inplace=True)
             
     # --- 4 & 5. Feature Engineering ---
-    print("\n[3/7] Feature Engineering & Creating Distance metric...")
+    print("\n[3/7] Using pre-engineered features from refined dataset...")
     
-    # Calculate Distance
-    df['Distance_km'] = df.apply(calculate_distance, axis=1)
-    
-    # 1. Preparation Time (prep_time_min)
-    t_ord = pd.to_datetime(df['Time_Orderd'].astype(str), format='%H:%M', errors='coerce')
-    t_pick = pd.to_datetime(df['Time_Order_picked'].astype(str), format='%H:%M', errors='coerce')
-    prep = (t_pick - t_ord).dt.total_seconds() / 60
-    prep = np.where(prep < 0, prep + 24*60, prep) # handle midnight crossing
-    df['prep_time_min'] = prep
-    df['prep_time_min'].fillna(df['prep_time_min'].median(), inplace=True)
+    # The refined dataset already contains: distance_km, Preparation_Time, Peak_Hour
+    # Rename to match app.py expectations
+    df.rename(columns={
+        'distance_km': 'Distance_km',
+        'Preparation_Time': 'prep_time_min',
+        'Peak_Hour': 'is_peak_hour'
+    }, inplace=True)
 
-    # 2. Peak Hour Flag
-    df['is_peak_hour'] = df['Road_traffic_density'].astype(str).str.strip().apply(lambda x: 1 if x in ['Jam', 'High'] else 0)
-
-    # 3. Bad Weather Flag
+    # Bad Weather Flag
     bad_weather = ['Storm', 'Sandstorms', 'Windy', 'Fog']
     df['is_bad_weather'] = df['Weather_conditions'].astype(str).str.strip().apply(lambda x: 1 if any(w in str(x) for w in bad_weather) else 0)
 
-    # 4. Distance Bucket
+    # Distance Bucket
     df['dist_bucket'] = pd.cut(df['Distance_km'], bins=[0, 3, 6, 10, 100], labels=['0-3km', '3-6km', '6-10km', '>10km']).astype(str)
 
     # We will select a subset of features for the modeling phase

@@ -34,7 +34,7 @@ st.markdown("""
 # --- Helper Functions ---
 @st.cache_data
 def load_data():
-    df = pd.read_csv('zomato_dataset.csv')
+    df = pd.read_csv('refined_zomato_dataset.csv')
     df.columns = df.columns.str.strip()
     return df
 
