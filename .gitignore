@@ -1,0 +1,8 @@
+*.joblib
+*.csv
+__pycache__/
+.ipynb_checkpoints/
+*.tmp
+* - Copy*
+.DS_Store
+Thumbs.db
