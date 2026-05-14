@@ -5,6 +5,7 @@ import InputPanel from './components/InputPanel';
 import PredictionPanel from './components/PredictionPanel';
 import FeatureImportanceChart from './components/FeatureImportanceChart';
 import KitchenPanel from './components/KitchenPanel';
+import EdaPanel from './components/EdaPanel';
 import { computePrediction } from './utils/predict';
 
 const DEFAULT = {
@@ -43,7 +44,7 @@ export default function App() {
       <main className="max-w-[1400px] mx-auto px-4 py-6 space-y-5">
         <MetricsStrip />
         
-        {activeTab === 'dispatch' ? (
+        {activeTab === 'dispatch' && (
           <>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               <InputPanel inputs={inputs} updateInput={update} result={result} onPredict={handlePredict} />
@@ -51,8 +52,14 @@ export default function App() {
             </div>
             <FeatureImportanceChart />
           </>
-        ) : (
+        )}
+        
+        {activeTab === 'kitchen' && (
           <KitchenPanel inputs={inputs} updateInput={update} />
+        )}
+
+        {activeTab === 'eda' && (
+          <EdaPanel />
         )}
 
         <p className="text-center font-mono text-[10px] text-[#2a2a2a] pb-4 tracking-widest mt-8">

@@ -29,6 +29,12 @@ export default function Header({ activeTab, onTabChange }) {
           >
             KITCHEN OPS
           </button>
+          <button 
+            onClick={() => onTabChange('eda')}
+            className={`px-4 py-1 text-xs font-mono tracking-widest rounded transition-colors ${activeTab === 'eda' ? 'bg-[#252525] text-white' : 'text-[#6b7280] hover:text-[#9ca3af]'}`}
+          >
+            EDA INSIGHTS
+          </button>
         </div>
 
         {/* Right: status */}
